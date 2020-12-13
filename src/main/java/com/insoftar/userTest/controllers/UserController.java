@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +21,8 @@ import com.insoftar.userTest.repositories.UserRepository;
 import com.insoftar.userTest.service.UserService;
 
 @Controller
-@RequestMapping("/users")
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
 	@Autowired
@@ -31,7 +34,7 @@ public class UserController {
 	final static Logger logger = LoggerFactory.getLogger(UserController.class);
 	
 
-	@PostMapping("/add") 
+	@PostMapping("/users") 
 	public @ResponseBody long addNewUser(@RequestBody User newUser) {
 		logger.info("creating user with cedula " + newUser.getCedula());
 		
@@ -49,7 +52,7 @@ public class UserController {
 	}
 	
 	 
-	@PutMapping("/update") 
+	@PutMapping("/users/{id}") 
 	public @ResponseBody long updateUser(@RequestBody User newUser) {
 				
 		if(!userRepository.findByCedula(newUser.getCedula()).isEmpty()) {
@@ -60,7 +63,7 @@ public class UserController {
 			return -2;
 		}
 		
-		Optional<User> foundUser = userRepository.findByCedula((newUser.getCedula()));
+		Optional<User> foundUser = userRepository.findById((newUser.getId()));
 		
 		if(!foundUser.isEmpty()) {
 			logger.info("Updating User with id " + newUser.getId());
@@ -70,13 +73,13 @@ public class UserController {
 		return 0;
 	}
 
-	@GetMapping(path = "/all")
+	@GetMapping(path = "/users")
 	public @ResponseBody Iterable<User> getAllUsers() {
 		// This returns a JSON or XML with the users
 		return userRepository.findAll();
 	}
 	
-	@GetMapping(path = "/{id}")
+	@GetMapping(path = "/users/{id}")
 	public @ResponseBody User getUser(@PathVariable ("id") long id) {
 		
 		Optional<User> foundUser = userRepository.findById(id);
@@ -89,4 +92,21 @@ public class UserController {
 		return foundUser.get();
 	}
 	
+	@DeleteMapping("/users/{id}") 
+	public @ResponseBody boolean deleteUser(@PathVariable ("id") long id) {
+		logger.info("deleting user with id " + id);
+		
+		if(userRepository.findById(id).isEmpty()) {
+			logger.info("deleting user with id" + id);
+			userRepository.deleteById(id);
+			if(!userRepository.findById(id).isEmpty()) {
+				return true;
+			}
+		}
+		logger.info("failed to delete user with id " + id);
+		return false;
+		
+		
+		
+	} 
 }
