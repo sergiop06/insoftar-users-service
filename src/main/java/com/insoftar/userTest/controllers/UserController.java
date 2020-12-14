@@ -41,10 +41,10 @@ public class UserController {
 
 		if (!userRepository.findByCedula(newUser.getCedula()).isEmpty()) {
 			logger.info("cant create as user with cedula  " + newUser.getCedula() + " already exist");
-			return new ResponseEntity<>("cedula already exist in db", HttpStatus.CONFLICT);
+			return new ResponseEntity<>("cedula already exist in db", HttpStatus.UNPROCESSABLE_ENTITY);
 		} else if (!userRepository.findByEmail(newUser.getEmail()).isEmpty()) {
 			logger.info("cant create as user with email  " + newUser.getEmail() + " already exist");
-			return new ResponseEntity<>("email already exist in db", HttpStatus.CONFLICT);
+			return new ResponseEntity<>("email already exist in db", HttpStatus.UNPROCESSABLE_ENTITY);
 		}
 
 		logger.info("creating user with cedula" + newUser.getCedula());
@@ -56,7 +56,7 @@ public class UserController {
 	public ResponseEntity<?> updateUser(@PathVariable("id") long id, @RequestBody User newUser) {
 		
 		Optional<User> foundUser = userRepository.findById((id));
-		logger.info("newUserid===="+newUser.getId());
+		logger.info("newUserid ===="+newUser.getId());
 		
 		if (!foundUser.isEmpty()) {
 
@@ -64,7 +64,7 @@ public class UserController {
 
 			if (!foundUserWithEmail.isEmpty() && foundUserWithEmail.get().getId() != id) {
 				logger.info("cant update user as user with email  " + newUser.getEmail() + " already exist");
-				return new ResponseEntity<>("email already exist in db", HttpStatus.CONFLICT);
+				return new ResponseEntity<>("email already exist in db", HttpStatus.UNPROCESSABLE_ENTITY);
 
 			}
 			foundUser.get().setFirstName(newUser.getFirstName());
@@ -81,7 +81,7 @@ public class UserController {
 
 	@GetMapping(path = "/users")
 	public @ResponseBody Iterable<User> getAllUsers() {
-		// This returns a JSON or XML with the users
+		logger.info("=== called retreive users ====  " );
 		return userRepository.findAll();
 	}
 
@@ -106,7 +106,9 @@ public class UserController {
 			logger.info("deleting user with id" + id);
 			userRepository.deleteById(id);
 			if (userRepository.findById(id).isEmpty()) {
-				return new ResponseEntity<>("deleted user with id" + id, HttpStatus.OK);
+				String response = "deleted user with id "+id;
+				logger.info("response" + response);
+				return new ResponseEntity<>(id, HttpStatus.OK);
 			}
 		}
 		logger.info("failed to delete user with id " + id);
